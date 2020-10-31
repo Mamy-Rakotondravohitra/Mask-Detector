@@ -9,10 +9,11 @@
 ## Sommaire
   - [Contexte et Objectifs](#Contexte-et-objectifs)
   - [Dataset](#Dataset)
-  - [Models](#Modèles Utilisés)
+  - [Modèles utilisés](#Modèles-utilisés)
   - [Video detector set up](#VideoSetUp)
   - [Image detector set up](#ImageSetUp)
-  - [Modèles utilisés](#Modèles-utilisés)
+  - [Limites et amélioration](#Limites-et-amélioration)
+ 
 
 
 ## Contexte et objectifs
