@@ -5,14 +5,14 @@
     Ce projet avait pour but de tenter de reproduire les technologies récemment mises en place pour contrôler le port du masque
 </h4>
 </div>
-https://github.com/CharlieDpt/Mask-Detector/blob/main/Mask%20Detection%20App.gif
+
 
 ## Contexte et objectifs
 Ce projet s’articule en deux modules
 
 Création d’une web application permettant de détecter les personnes masquées à partir d’une image importée
 
-![Live Demo](https://github.com/CharlieDpt/Face-Mask-Detection/blob/master/Mask%20Detection%20-%20OK(1).gif)
+![Live Demo](https://github.com/CharlieDpt/Mask-Detector/blob/main/Mask%20Detection%20App.gif)
 
 ## Sommaire
 
