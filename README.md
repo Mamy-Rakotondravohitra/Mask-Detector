@@ -7,7 +7,7 @@
 </div>
 
 ## Sommaire
-  - [Contexte ](#Dataset)
+  - [Contexte et Objectifs](#Contexte-et-objectifs)
   - [Dataset](#Dataset)
   - [Models](#Modèles Utilisés)
   - [Video detector set up](#VideoSetUp)
