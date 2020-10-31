@@ -11,14 +11,15 @@ https://github.com/CharlieDpt/Mask-Detector/blob/main/Mask%20Detection%20App.gif
 Ce projet s’articule en deux modules
 
 Création d’une web application permettant de détecter les personnes masquées à partir d’une image importée
+
 ![Live Demo](https://github.com/CharlieDpt/Face-Mask-Detection/blob/master/Mask%20Detection%20-%20OK(1).gif)
 
 ## Sommaire
 
   - [Dataset](#Dataset)
   - [Models](#Modèles Utilisés)
-  - [Video detector Set up](#VideoSetUp)
-  - [Image detector Set up](#ImageSetUp)
+  - [Video detector set up](#VideoSetUp)
+  - [Image detector set up](#ImageSetUp)
 
 
 ## Dataset
@@ -30,7 +31,7 @@ Création d’une web application permettant de détecter les personnes masquée
 
 *N.B : Les deux datasets ont été créés automatiquement via le fichier BingWebScrapping.ipynb. Bien qu'un filtre mannuel ait été fait il peut comporter des irrégularités.*
 
-## Video Detector SetUp
+## Video detector Set up
 
 Ce projet a été codé en python, et utilise différentes librairies. 
 
@@ -45,6 +46,9 @@ Pour faire fonctionner la détéction de masque via la webcam l'installation sui
 Preprocessing : Redimension des images et data-augmentation (flip , contrast) 
 
 Transfert Learning : apprentissage sur les 50 dernières couches du modèle CNN pré-entrainé InceptionV3 
+
+## Image detector set up
+** TO DO **
 
 ## Limites et amélioration
 
