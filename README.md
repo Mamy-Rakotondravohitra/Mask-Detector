@@ -1,6 +1,3 @@
-# Mask-Detector
-Machine Learning model to detect if a person is wearing a mask on the face
-
 <h1 align="center">Face mask detector</h1> 
 
 <div align= "center">
@@ -8,19 +5,28 @@ Machine Learning model to detect if a person is wearing a mask on the face
     Ce projet avait pour but de tenter de reproduire les technologies récemment mises en place pour contrôler le port du masque
 </h4>
 </div>
+https://github.com/CharlieDpt/Mask-Detector/blob/main/Mask%20Detection%20App.gif
+
+## Contexte et objectifs
+Ce projet s’articule en deux modules
+
+Création d’une web application permettant de détecter les personnes masquées à partir d’une image importée
+![Live Demo](https://github.com/CharlieDpt/Face-Mask-Detection/blob/master/Mask%20Detection%20-%20OK(1).gif)
 
 ## Sommaire
 
   - [Dataset](#Dataset)
+  - [Models](#Modèles Utilisés)
   - [Video detector Set up](#VideoSetUp)
   - [Image detector Set up](#ImageSetUp)
 
 
 ## Dataset
-
-Le dossier "dataset" contient les deux dossiers d'images utilisés pour le projet :
- - "Mask" : images avec des visages portant un masque
- - "NoMask" : images avec des visages sans masques.
+ Le dossier "dataset" est issus d'un webscrapping sur les images de Bing avec Selenium : 2361 images
+ 
+ Il contient les deux dossiers d'images utilisés pour le projet :
+ - "Mask" : 1144 images avec des visages portant un masque
+ - "NoMask" : 1217 images avec des visages sans masques.
 
 *N.B : Les deux datasets ont été créés automatiquement via le fichier BingWebScrapping.ipynb. Bien qu'un filtre mannuel ait été fait il peut comporter des irrégularités.*
 
@@ -36,6 +42,17 @@ Pour faire fonctionner la détéction de masque via la webcam l'installation sui
 - Lancer video_live_detection.py
   
 
-# Installation des librairies
+Preprocessing : Redimension des images et data-augmentation (flip , contrast) 
 
+Transfert Learning : apprentissage sur les 50 dernières couches du modèle CNN pré-entrainé InceptionV3 
+
+## Limites et amélioration
+
+1. Limites
+Le modèle de détection du visage ne détecte pas tous les visages sur une image 
+Il trouve des visages qui n’en sont pas
+
+2. Améliorations :
+Détecter en fonction de la probabilité de la classe si le masque est porté en dessous du nez ou du menton
+Développer la détection video live dans une application web ou smartphone
 
