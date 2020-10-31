@@ -49,6 +49,7 @@ Nous avons entrainé le modèle comme suit :
 1 - Preprocessing : 
 Redimension des images et data-augmentation (flip , contrast) 
 
+
 2 - Transfert Learning : apprentissage sur les 50 dernières couches du modèle CNN pré-entrainé InceptionV3
 
 ## Video detector Set up
@@ -63,7 +64,18 @@ Pour faire fonctionner la détéction de masque via la webcam l'installation sui
 - Lancer video_live_detection.py
 
 ## Image detector set up
-** TO DO **
+
+Pour déployer le web application, nous avons besoin du Framework Flask dans lequel nous chargeons le meilleur modèle entrainé InceptionV3
+
+Voici la structure de l'application Flask que vous trouverez dans le dossier maskdetection_photo, ce fichier ne comporte pas le modèle car sa taille dépasse les 100MB autorisée par Github *
+
+static
+  |_ models
+        |_ InceptionV3.h5
+ templates
+  |_ predicted.html
+  |_ layout.html
+  |_ simulation.html
 
 ## Limites et amélioration
 
