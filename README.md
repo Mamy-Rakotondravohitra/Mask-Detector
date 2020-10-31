@@ -6,6 +6,13 @@
 </h4>
 </div>
 
+## Sommaire
+  - [Contexte ](#Dataset)
+  - [Dataset](#Dataset)
+  - [Models](#Modèles Utilisés)
+  - [Video detector set up](#VideoSetUp)
+  - [Image detector set up](#ImageSetUp)
+
 
 ## Contexte et objectifs
 Ce projet s’articule en deux modules
@@ -14,12 +21,6 @@ Création d’une web application permettant de détecter les personnes masquée
 
 ![Live Demo](https://github.com/CharlieDpt/Mask-Detector/blob/main/Mask%20Detection%20App.gif)
 
-## Sommaire
-
-  - [Dataset](#Dataset)
-  - [Models](#Modèles Utilisés)
-  - [Video detector set up](#VideoSetUp)
-  - [Image detector set up](#ImageSetUp)
 
 
 ## Dataset
