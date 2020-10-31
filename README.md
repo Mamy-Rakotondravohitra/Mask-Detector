@@ -12,6 +12,7 @@
   - [Models](#Modèles Utilisés)
   - [Video detector set up](#VideoSetUp)
   - [Image detector set up](#ImageSetUp)
+  - [Modèles utilisés](#Modèles-utilisés)
 
 
 ## Contexte et objectifs
@@ -32,6 +33,23 @@ Création d’une web application permettant de détecter les personnes masquée
 
 *N.B : Les deux datasets ont été créés automatiquement via le fichier BingWebScrapping.ipynb. Bien qu'un filtre mannuel ait été fait il peut comporter des irrégularités.*
 
+## Modèles utilisés
+
+### Modèle de détection des visages
+
+Ce modèe a été repris directement depuis Open-CV et est disponnible également ici : https://github.com/opencv/opencv/tree/3.4/data/haarcascades
+
+### Modèle de détection des masques
+
+Une fois le visage identifié via le modèle de détection des visages, celui-ci est envoyé au modèle de détection des masques.$
+
+Nous avons entrainé le modèle comme suit : 
+
+1 - Preprocessing : 
+Redimension des images et data-augmentation (flip , contrast) 
+
+2 - Transfert Learning : apprentissage sur les 50 dernières couches du modèle CNN pré-entrainé InceptionV3
+
 ## Video detector Set up
 
 Ce projet a été codé en python, et utilise différentes librairies. 
@@ -42,11 +60,6 @@ Pour faire fonctionner la détéction de masque via la webcam l'installation sui
 - Télécharger requirements.txt
 - Installer les versions des librairies nécessaires présentes dans requirements.txt
 - Lancer video_live_detection.py
-  
-
-Preprocessing : Redimension des images et data-augmentation (flip , contrast) 
-
-Transfert Learning : apprentissage sur les 50 dernières couches du modèle CNN pré-entrainé InceptionV3 
 
 ## Image detector set up
 ** TO DO **
