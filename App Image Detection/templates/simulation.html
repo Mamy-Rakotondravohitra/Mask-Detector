@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+<!--Enter Name -->
+<div style="padding:10px;">
+  <div class="enter-name">
+    <form action="{{ url_for('predict') }}" method="POST" enctype="multipart/form-data">
+      <h2>Choisissez une image</h2>
+      <div style ="text-align: center">
+        <input type="file" onchange="loadFile(event)" name="ImgUpload" accept=".jpg" style="text-align: center;">
+        <br>
+        <img id="output" style="max-width: 20%;max-height: 20%;"/>
+        <script>
+          var loadFile = function(event) {
+            var output = document.getElementById('output');
+            output.src = URL.createObjectURL(event.target.files[0]);
+            output.onload = function() {
+              URL.revokeObjectURL(output.src) // free memory
+            }
+          };
+        </script>
+      
+      <br>
+      <input type="submit" value="Predict" class="petit_bouton" style="margin-top: 20px;">
+      </div>
+     <!-- <button type="button">Predict</button> -->
+    </form>
+  </div>
+  
+</div>
+{% endblock %}

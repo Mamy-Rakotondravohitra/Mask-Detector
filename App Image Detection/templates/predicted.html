@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<!--Enter Name -->
+<div class="enter-name">
+  <h2>Résultat : </h2>
+  <div style ="text-align: center">
+  <img src={{img_path}} style ="max-width: 500px; max-height: 450px">
+  <p> {{nb_mask + nb_no_mask }} visage(s) détecté(s) sur cette image : </p>
+  <p> {{nb_mask}} avec masque</p>
+  <p> {{nb_no_mask}} sans masque</p>
+  </div>
+</div>
+{% endblock %}
