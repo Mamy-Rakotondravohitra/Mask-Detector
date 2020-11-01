@@ -1,0 +1,424 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Oct  3 14:47:40 2020
+Classification d'image avec des réseaux de neurones
+@author: mamym
+"""
+# Import des librairies
+
+
+#!pip install tensorflow==2.0.0
+!pip install --upgrade tensorflow
+
+import tensorflow as tf 
+tf.__version__
+
+import pandas as pd
+import numpy as np 
+import matplotlib.pyplot as plt
+
+import os 
+print(os.getcwd())
+
+"""Import des images de personnes masquées"""
+
+# Path vers les données d'entrainement - avec masques
+import pathlib 
+train_set = pathlib.Path("C:/Users/mamym/Documents/GitHub/ds-full/Face-Mask-Detection/dataset/Mask_total")
+
+# Convert all paths into a string - list comprehension 
+all_image_paths = [str(img_path) for img_path in list(train_set.glob("*.jpg"))]
+mask_size = len(all_image_paths)
+
+# Uniquement le stockage des images de personne masquées
+all_image_paths
+
+
+"""Import des images de personnes sans masque"""
+
+# Path vers les données d'entrainement - sans masques
+train_set_no_mask = pathlib.Path("C:/Users/mamym/Documents/GitHub/ds-full/Face-Mask-Detection/dataset/Visages")
+
+# Convert all paths into a string - list comprehension
+all_image_nomask = [str(img_path) for img_path in list(train_set_no_mask.glob("*.jpg"))]
+nomask_size = len(all_image_nomask)
+
+
+"""Extension de la liste"""
+all_image_paths.extend(all_image_nomask)
+print("Taille de l'échantillon : ",len(all_image_paths))
+# all_image_paths : contient 2361 mask et nomask
+
+
+# Convert all string path into bytes
+all_image_bytes = [tf.io.read_file(path) for path in all_image_paths]
+
+# Convert all bytes into a tensor
+all_image_tensors = [tf.image.decode_jpeg(img_byte) for img_byte in all_image_bytes]
+
+#Visualisation d'une image
+plt.imshow(all_image_tensors[1])
+
+"""Preprocess the images and data augmentation"""
+
+# Creation of preprocessing function
+def load_and_resize_images(img):
+    img = tf.io.read_file(img) #read the iamge
+    img = tf.image.decode_jpeg(img, channels=3) #decode the image
+    img = tf.image.resize(img, [224, 224]) #resize the image 
+    img = img / 255.0
+  
+    return img
+
+def preprocess_images(img):
+    img = tf.image.random_flip_left_right(img) #flip the image randomly
+    img = tf.image.random_contrast(img, 0.50, 0.90) #change image contrast
+    return img
+
+
+#Preprocessing vizualisation
+nb = 5
+fig, axes = plt.subplots(2,nb,figsize=(30, 10))
+for i in range(nb):
+    axes[0,i].imshow(all_image_tensors[i])
+    axes[1,i].imshow(load_and_resize_images(all_image_paths[i]))
+plt.show()
+
+
+
+"""Tensorflow dataset creation"""
+
+tf_train_set = tf.data.Dataset.from_tensor_slices(all_image_paths)
+
+# Apply function de preprocess to the dataset
+tf_train_set = tf_train_set.map(load_and_resize_images)
+
+# Create a tf.data.Dataset of labels 
+labels = [1] * mask_size
+labels_nomask = [0]* nomask_size
+labels.extend(labels_nomask)
+len(labels)
+
+tf_labels = tf.data.Dataset.from_tensor_slices(labels)
+
+# Create a full dataset 
+full_ds = tf.data.Dataset.zip((tf_train_set, tf_labels))
+
+# Shuffle the dataset & create batchs 
+full_ds = full_ds.shuffle(len(all_image_paths))
+
+for example in full_ds.take(1):
+  print(example)
+
+#TRAIN TEST SPLIT
+TEST_SIZE = round(0.20*len(all_image_paths))
+
+train_data = full_ds.skip(TEST_SIZE).shuffle(3000)
+
+# Data augmentation
+train_data = train_data.map(lambda x, y: (preprocess_images(x), y))
+train_data = train_data.batch(64)
+
+test_data = full_ds.take(TEST_SIZE)
+test_data = test_data.batch(64)
+
+
+# Get an example tensor
+for example_tensor in train_data.take(1):
+  print(example_tensor)
+
+
+
+# Visualize some data 
+for example_x, example_y in train_data.take(8):
+  for i in range(len(example_y)):
+    plt.figure()
+    plt.title(example_y.numpy()[i])
+    plt.imshow(example_x.numpy()[i])
+    plt.show()
+    break
+
+
+"""Model 1 : réseau de neurone classique Sequential"""
+"""Pas de couches de Conv2D & MaxPool2D"""
+
+# Création d'un model 
+model = tf.keras.Sequential([
+    tf.keras.layers.Flatten(),                 
+    tf.keras.layers.Dense(units=128, activation="relu"),
+    tf.keras.layers.Dense(units=64, activation='relu'),
+    tf.keras.layers.Dropout(0.05),
+    tf.keras.layers.Dense(units=32, activation ="relu"),
+    tf.keras.layers.Dense(units=16, activation ="relu"),
+    tf.keras.layers.Dropout(0.05),
+    tf.keras.layers.Dense(units=8, activation ="relu"),
+    tf.keras.layers.Dense(units=1, activation='sigmoid')
+])
+
+
+
+# Création d'un schedule learning rate 
+initial_learning_rate = 0.0001
+
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate,
+    decay_steps=500,
+    decay_rate=0.96,
+    staircase=True)
+
+# Création d'un compileur
+model.compile(optimizer = tf.keras.optimizers.Adam(lr_schedule),
+            loss= tf.keras.losses.binary_crossentropy,
+              metrics = [tf.keras.metrics.binary_accuracy])
+import time
+%time model.fit(train_data, epochs=60)  
+
+# Epoch 60/60
+# 30/30 [==============================] - 11s 353ms/step - loss: 0.5120 - 
+# binary_accuracy: 0.7316
+# Wall time: 9min 35s
+
+
+# Vérifier l'overfitting avec le dataset de validation 
+model.evaluate(test_data)
+# 8/8 [==============================] - 6s 707ms/step - loss: 0.5302 - 
+# binary_accuracy: 0.7136
+
+for example, label in test_data.take(8):
+    y_pred= model.predict_classes(example.numpy())
+for i in range(len(y_pred)):
+    plt.figure()
+    plt.title(y_pred[i])
+    plt.imshow(example[i])
+plt.show()
+
+model.summary()
+
+
+"""Visualiser le processus d'apprentissage"""
+
+# Pour visualiser le processus d'apprentissage, il vous faudra stocker l'apprentissage de votre modèle dans une variable
+history = model.fit(train_data, epochs=5)
+
+# Une fois ceci fait, vous obtenez à l'intérieur de history un dictionnaire de valeur que vous pouvez accéder de la façon suivante :
+    
+plt.plot(history.history["loss"])
+plt.ylabel("loss")
+plt.xlabel("Epochs")
+plt.show()
+
+
+plt.plot(history.history["binary_accuracy"])
+plt.ylabel("binary_accuracy")
+plt.xlabel("Epochs")
+plt.show()
+
+
+"""Matrice de confusion"""
+y_true = []
+y_pred = []
+for batch, true_labels in test_data.take(-1):
+  y_true += [true_labels.numpy()]
+  y_pred += [model.predict_classes(batch)]
+    
+y_true = tf.concat([batch for batch in y_true], axis=0).numpy()
+y_pred = tf.concat([batch for batch in y_pred], axis=0).numpy()
+
+from sklearn.metrics import confusion_matrix 
+import seaborn as sns 
+
+cm = confusion_matrix(y_true, y_pred)
+sns.heatmap(cm, annot=True, fmt='d')
+
+model.save("model.h5")
+
+
+
+
+"""# Model 2 (CNN)"""
+
+# Création d'un model 
+model2 = tf.keras.Sequential([
+    tf.keras.layers.Conv2D(filters=32, kernel_size=3, padding="same", activation="relu", input_shape=[192, 192, 3]),
+    tf.keras.layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
+    tf.keras.layers.Conv2D(filters=32, kernel_size=3, padding="same", activation="relu"),
+    tf.keras.layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
+    tf.keras.layers.Conv2D(filters=64, kernel_size=3, padding="same", activation="relu"),
+    tf.keras.layers.MaxPool2D(pool_size=2, strides=2, padding='valid'),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(units=64, activation='relu'),
+    tf.keras.layers.Dropout(0.05),
+    tf.keras.layers.Dense(units=32, activation ="relu"),
+    tf.keras.layers.Dense(units=16, activation ="relu"),
+    tf.keras.layers.Dense(units=1, activation='sigmoid')
+])
+
+# Créons un learning rate schedule pour décroitre le learning rate à mesure que 
+# nous entrainons le modèle 
+initial_learning_rate = 0.0005
+
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate,
+    decay_steps=6000,
+    decay_rate=0.95,
+    staircase=True)
+
+# Création d'un compileur
+model2.compile(optimizer = tf.keras.optimizers.Adam(lr_schedule),loss= tf.keras.losses.binary_crossentropy,metrics = [tf.keras.metrics.binary_accuracy])
+
+import time
+%time model2.fit(train_data, epochs=10)  
+#Epoch 10/10
+#30/30 [==============================] - 106s 4s/step - loss: 0.2569 - binary_accuracy: 0.9015
+#Wall time: 17min 14s
+
+model2.evaluate(test_data)
+# 8/8 [==============================] - 15s 2s/step - loss: 0.2658 - binary_accuracy: 0.8877
+# Out[35]: [0.26576988585293293, 0.8877119]
+
+
+y_true = []
+y_pred = []
+for batch, true_labels in test_data.take(-1):
+  y_true += [true_labels.numpy()]
+  y_pred += [model2.predict_classes(batch)]
+    
+y_true = tf.concat([batch for batch in y_true], axis=0).numpy()
+y_pred = tf.concat([batch for batch in y_pred], axis=0).numpy()
+
+cm = confusion_matrix(y_true, y_pred)
+sns.heatmap(cm, annot=True, fmt='d')
+
+for example, label in test_data.take(1):
+  y_pred = model2.predict_classes(example.numpy())
+  
+  for i in range(len(y_pred)):
+    plt.figure()
+    plt.title(y_pred[i])
+    plt.imshow(example[i])
+    
+plt.show()
+
+model2.save("model2.h5")
+
+"""InceptionV3 - Transfert Learning"""
+
+# On ne prend pas la dernière couche d'output. Cette dernière couche sera 
+# adaptée à notre besoin de classification
+base_model = tf.keras.applications.InceptionV3(input_shape=(192,192,3), 
+                                               include_top=False,
+                                               weights = "imagenet"
+                                               )
+# L'architecture de notre modèle 
+base_model.summary()
+
+# Geler le modèle pour n'entrainer que les dernières couches
+# Ceci empêche d'entrainer tout notre modèle 
+base_model.trainable = False
+
+
+# Adaptation du modèle au dataset
+# Usage de la couche GlobalAveragePooling2D qui permettra de sortir les 
+# pixels les plus signifiants de l'image et une dernière couche dense 
+# qui prendra le nb de classe de notre dataset et 
+# une fonction d'activation qui sortira la probabilité pour chacune des predictions
+model = tf.keras.Sequential([
+    base_model,
+    tf.keras.layers.GlobalAveragePooling2D(),
+    tf.keras.layers.Dense(len(labels), activation="sigmoid")
+])
+
+
+# Créons un learning rate schedule pour décroitre le learning rate à mesure que nous entrainons le modèle 
+# Préparons notre fonction de coût, notre optimiser et un learning rate schedule pour améliorer nos résultats de prédictions et minimiser notre fonction de coût.
+initial_learning_rate = 0.001
+
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate,
+    decay_steps=1000,
+    decay_rate=0.96,
+    staircase=True)
+
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = lr_schedule),
+              loss = tf.keras.losses.SparseCategoricalCrossentropy(),
+              metrics = [tf.keras.metrics.SparseCategoricalAccuracy()])
+
+# Entrainons notre modèle 
+import time
+%time model.fit(train_data, epochs=5)
+
+
+# Epoch 5/5
+# 30/30 [==============================] - 176s 6s/step - loss: 0.1033 - 
+# sparse_categorical_accuracy: 0.9608
+# Wall time: 20min 6s
+
+#model.evaluate(test_data)
+
+model.save("model3.h5")
+
+
+
+"""MobileNetV2 - Transfert Learning"""
+
+base_model = tf.keras.applications.MobileNetV2(input_shape=(224,224,3),
+                                               include_top=False,
+                                               weights = "imagenet"
+                                               )
+
+base_model.trainable = False
+
+
+model = tf.keras.Sequential([
+    base_model,
+    tf.keras.layers.GlobalAveragePooling2D(),
+    tf.keras.layers.Dense(len(labels), activation="sigmoid")
+])
+
+
+initial_learning_rate = 0.0001
+
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate,
+    decay_steps=2000,
+    decay_rate=0.90,
+    staircase=True)
+
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate = lr_schedule),
+              loss = tf.keras.losses.SparseCategoricalCrossentropy(),
+              metrics = [tf.keras.metrics.SparseCategoricalAccuracy()])
+
+
+history = model.fit(train_data,epochs=30) 
+#Epoch 30/30
+#30/30 [==============================] - 213s 7s/step - loss: 0.2519 - sparse_categorical_accuracy: 0.9328
+
+model.evaluate(test_data)
+#8/8 [==============================] - 26s 3s/step - loss: 0.2373 - sparse_categorical_accuracy: 0.9470
+#sparse_categorical_accuracy: 0.9470
+#Out[72]: [0.23734240978956223, 0.9470339]
+
+y_true = []
+y_pred = []
+for batch, true_labels in test_data.take(-1):
+  y_true += [true_labels.numpy()]
+  y_pred += [model.predict_classes(batch)]
+    
+y_true = tf.concat([batch for batch in y_true], axis=0).numpy()
+y_pred = tf.concat([batch for batch in y_pred], axis=0).numpy()
+
+cm = confusion_matrix(y_true, y_pred)
+sns.heatmap(cm, annot=True, fmt='d')
+
+for example, label in test_data.take(1):
+  y_pred = model.predict_classes(example.numpy())
+  
+  for i in range(len(y_pred)):
+    plt.figure()
+    plt.title(y_pred[i])
+    plt.imshow(example[i])
+    
+plt.show()
+
+model.save("model_MobileNet.h5")
+
